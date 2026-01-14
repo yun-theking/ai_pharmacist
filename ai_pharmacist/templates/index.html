@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI 약사님</title>
+    <style>
+        body { font-family: 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif; background-color: #f2f2f2; margin: 0; padding: 0; display: flex; justify-content: center; }
+        .chat-container { width: 100%; max-width: 400px; height: 100vh; background-color: #fff; display: flex; flex-direction: column; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+        .chat-header { background-color: #3b5998; color: white; padding: 15px; text-align: center; font-weight: bold; font-size: 1.2rem; }
+        .chat-box { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
+        .message { max-width: 70%; padding: 10px 15px; border-radius: 15px; font-size: 0.95rem; line-height: 1.4; word-wrap: break-word; }
+        .message.bot { background-color: #eee; align-self: flex-start; border-top-left-radius: 0; }
+        .message.user { background-color: #fee500; align-self: flex-end; border-top-right-radius: 0; }
+        .input-area { padding: 15px; border-top: 1px solid #ddd; display: flex; gap: 10px; background-color: #fff; }
+        input { flex: 1; padding: 12px; border: 1px solid #ddd; border-radius: 20px; outline: none; }
+        button { padding: 10px 20px; background-color: #3b5998; color: white; border: none; border-radius: 20px; cursor: pointer; font-weight: bold; }
+        button:disabled { background-color: #ccc; }
+        /* 로딩 애니메이션 */
+        .typing-indicator { font-size: 0.8rem; color: #888; display: none; margin-left: 10px; }
+    </style>
+</head>
+<body>
+    <div class="chat-container">
+        <div class="chat-header">💊 AI 약사 상담소</div>
+        <div class="chat-box" id="chat-box">
+            <div class="message bot">안녕하세요! 어디가 불편하신가요? 증상을 말씀해주시면 약을 추천해드릴게요.</div>
+        </div>
+        <div class="typing-indicator" id="loader">약사님이 답변을 작성 중입니다...</div>
+        <div class="input-area">
+            <input type="text" id="user-input" placeholder="증상을 입력하세요 (예: 두통이 심해요)" onkeypress="if(event.keyCode==13) sendMessage()">
+            <button onclick="sendMessage()">전송</button>
+        </div>
+    </div>
+
+    <script>
+        async function sendMessage() {
+            const input = document.getElementById('user-input');
+            const chatBox = document.getElementById('chat-box');
+            const loader = document.getElementById('loader');
+            const msg = input.value.trim();
+
+            if (!msg) return;
+
+            // 1. 내 메시지 화면에 추가
+            chatBox.innerHTML += `<div class="message user">${msg}</div>`;
+            input.value = '';
+            chatBox.scrollTop = chatBox.scrollHeight;
+            loader.style.display = 'block'; // 로딩 시작
+
+            try {
+                // 2. 서버에 질문 보내기 (어제 만든 /ask 기능 사용)
+                const response = await fetch(`/ask?q=${encodeURIComponent(msg)}`);
+                const answer = await response.text();
+
+                // 3. AI 답변 화면에 추가
+                chatBox.innerHTML += `<div class="message bot">${answer}</div>`;
+            } catch (error) {
+                chatBox.innerHTML += `<div class="message bot">죄송합니다. 오류가 발생했습니다.</div>`;
+            } finally {
+                loader.style.display = 'none'; // 로딩 끝
+                chatBox.scrollTop = chatBox.scrollHeight;
+            }
+        }
+    </script>
+</body>
+</html>
